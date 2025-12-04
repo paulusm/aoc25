@@ -2,8 +2,10 @@ library(readr)
 library(purrr)
 library(stringr)
 library(dplyr)
+options(scipen = 999)
 
-banks <- read_lines(file = "data/3.txt")
+
+banks <- read_lines(file = "data/3-test.txt")
 
 banks |>
     map(\(bank) {
@@ -23,5 +25,21 @@ banks |>
             reduce(max) |>
             as.character()
         as.integer(paste0(first, second))
+    }) |>
+    reduce(sum)
+
+
+removeMin <- function(b) {
+    minJolt <- b |> str_split_1("") |> as.integer() |> reduce(min)
+    b |> str_remove(as.character(minJolt))
+}
+
+
+banks |>
+    map(\(bank) {
+        while (nchar(bank) > 12) {
+            bank <- removeMin(bank)
+        }
+        as.double(bank)
     }) |>
     reduce(sum)
