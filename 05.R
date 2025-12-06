@@ -62,8 +62,10 @@ dtFresh$from |>
       })
   })
 
-dtFreshClean <- dtFreshClean[-duplicated(dtFreshClean), ]
-dtFreshNonOverlap <- dtFreshNonOverlap[-duplicated(dtFreshNonOverlap), ]
+dupes <- duplicated(dtFreshClean)
+dtFreshClean <- dtFreshClean[-dupes, ]
+dupes2 <- duplicated(dtFreshNonOverlap)
+dtFreshNonOverlap <- dtFreshNonOverlap[-dupes2, ]
 
 # 214452980313054 too low
 # 455191274181386, 554540882371704 too high
