@@ -30,23 +30,25 @@ data |>
 #   reduce(sum) |>
 #   print()
 
+# Part 2 not yet working
+rm(dtFreshClean)
 dtFreshClean <- data.table(from = numeric(), to = numeric())
 dtFreshNonOverlap <- dtFresh
 
-dtFresh$from |>
-  map2(dtFresh$to, \(a, b) {
-    dtFresh$from |>
-      map2(dtFresh$to, \(x, y) {
+dtFreshNonOverlap$from |>
+  map2(dtFreshNonOverlap$to, \(a, b) {
+    dtFreshNonOverlap$from |>
+      map2(dtFreshNonOverlap$to, \(x, y) {
         if (a != x & b != y) {
           # Overlapping head
-          if (a <= x & b > x & b < y) {
+          if (a < x & b > x & b < y) {
             dtFreshClean <<- dtFreshClean |> rbind(list(a, y))
             dtFreshNonOverlap <<- dtFreshNonOverlap[
               -((from == a & to == b) | (from == x & to == y)),
             ]
           }
           # Overlapping tail
-          if (a > x & a < y & b >= y) {
+          if (a > x & a < y & b > y) {
             dtFreshClean <<- dtFreshClean |> rbind(list(x, b))
             dtFreshNonOverlap <<- dtFreshNonOverlap[
               -((from == a & to == b) | (from == x & to == y)),
@@ -62,15 +64,7 @@ dtFresh$from |>
       })
   })
 
-dupes <- duplicated(dtFreshClean)
-dtFreshClean <- dtFreshClean[-dupes, ]
-dupes2 <- duplicated(dtFreshNonOverlap)
-dtFreshNonOverlap <- dtFreshNonOverlap[-dupes2, ]
 
-# 214452980313054 too low
-# 455191274181386, 554540882371704 too high
-dtFreshClean |>
-  bind_rows(dtFreshNonOverlap) |>
-  mutate(diff = to - from) |>
-  summarise(sum(diff)) |>
-  print()
+dtOverall <- dtFreshClean |> bind_rows(dtFreshNonOverlap)
+dtOverall <- unique(dtOverall)
+dtOverall |> mutate(diff = (to - from) + 1) |> summarise(sum(diff)) |> print()
