@@ -13,7 +13,12 @@ input |>
     )
     list(
       str_split_1(parse[2], "") == "#",
-      str_split_1(parse[3], " "),
-      str_split_1(parse[4], ",")
+      str_split_1(parse[4], " "),
+      str_split(parse[3], " ") |>
+        pluck(1) |>
+        map(\(y) {
+          match <- str_match(y, "\\(([0-9|,]+)\\)")
+          match[2] |> unlist()
+        })
     )
   })
