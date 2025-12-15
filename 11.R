@@ -4,6 +4,9 @@ library(stringr)
 library(dplyr)
 library(igraph)
 library(tidyr)
+library(data.table)
+library(dtplyr)
+library(mirai)
 
 input <- read_lines(file = "data/11.txt")
 
@@ -28,31 +31,9 @@ net <- input |>
   })
 names(netdf) <- c("from", "to")
 
+
 netobj <- graph_from_data_frame(netdf)
 paths <- netobj |> all_shortest_paths("you", "out")
 print(paths$epaths |> length())
 
-
-paths <- k_shortest_paths(
-  netobj,
-  k = 5000,
-  "svr",
-  "out",
-  mode = "out"
-)$vpaths
-print(paste("part 2 paths =", length(paths)))
-paths |>
-  map(
-    \(x) {
-      if (
-        sum(str_count(names(x), "dac") > 0) &
-          sum(str_count(names(x), "fft") > 0)
-      ) {
-        1
-      } else {
-        0
-      }
-    },
-    .progress = T
-  ) |>
-  reduce(sum)
+paths <- netobj|> all_shortest_paths(from="fft", to="dac") # 160944 too low
