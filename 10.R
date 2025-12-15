@@ -5,7 +5,7 @@ library(stringr)
 
 input <- read_lines(file = "data/10-test.txt")
 
-input |>
+data <- input |>
   map(\(x) {
     parse <- str_match(
       x,
@@ -18,7 +18,33 @@ input |>
         pluck(1) |>
         map(\(y) {
           match <- str_match(y, "\\(([0-9|,]+)\\)")
-          match[2] |> unlist()
+          match[2] |> unlist() |> str_split_1(",") |> as.integer() |> map_vec(~ .x + 1)
         })
     )
   })
+
+pressButtons <- function(state, target, buttons){
+  candidate <- state
+  buttons |> map(\(button){
+    candidate[button] <- !candidate[button]
+    print(candidate)
+    if(identical(candidate,target)){
+      print("match")
+      return(target)
+    }
+  })
+  return(target)
+}
+
+
+data |> map(\(x){
+  its <- 1
+  pattern <- x |> pluck(1)
+  base <- rep(F,length(pattern))
+  while(!identical(pattern, base)){
+    base <- pressButtons(base, pattern, x |> pluck(3))
+    its <<- its + 1
+  }
+  its
+})
+
