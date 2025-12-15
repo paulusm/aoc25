@@ -31,17 +31,35 @@ dtSamples$sample |>
   print()
 
 # Part 2 not yet working
-dtNoOverlaps <- data.table(newfrom = numeric(), newto = numeric())
+dtNoOverlaps <- data.table(f = numeric(), t = numeric())
 dtFresh |>
+  arrange(from) |>
   pmap(\(from, to) {
     overlaps <- dtNoOverlaps[
-      (from > newfrom & to > newto & from < newto) |
-        (from < newfrom & to < newto & to < newfrom),
+      (from >= f & to >= t & from < t) |
+        (from <= f & to <= t & to < f),
     ]
-    print(paste("overlaps", nrow(overlaps)))
+
     if (nrow(overlaps) == 0) {
       dtNoOverlaps <<- dtNoOverlaps |> rbind(list(from, to))
     } else {
-      print(paste("overlaps:", nrow(overlaps)))
+      overlaps <- overlaps |> rbind(list(from, to))
+      #print(paste("overlaps", nrow(overlaps)))
+      frommin <- from
+      tomax <- to
+      overlaps |>
+        pmap(\(f, t) {
+          frommin <<- min(f, frommin)
+          tomax <<- max(to, tomax)
+        })
+      dtNoOverlaps <<- dtNoOverlaps |> anti_join(overlaps, by = join_by(f, t))
+      dtNoOverlaps <<- dtNoOverlaps |> rbind(list(frommin, tomax))
     }
   })
+
+dtNoOverlaps |>
+  pmap(\(f, t) {
+    t - f + 1
+  }) |>
+  reduce(sum) |>
+  print()
