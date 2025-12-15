@@ -3,7 +3,7 @@ library(dplyr)
 library(purrr)
 library(stringr)
 
-input <- read_lines(file = "data/10-test.txt")
+input <- read_lines(file = "data/10.txt")
 
 data <- input |>
   map(\(x) {
@@ -23,28 +23,33 @@ data <- input |>
     )
   })
 
-pressButtons <- function(state, target, buttons){
-  candidate <- state
-  buttons |> map(\(button){
-    candidate[button] <- !candidate[button]
-    print(candidate)
-    if(identical(candidate,target)){
-      print("match")
-      return(target)
-    }
-  })
-  return(target)
-}
+pressButtons <- function(states, target, buttons,its){
+  #print(paste(paste(target, collapse=",") , "iteration", its))
+  match <- F
+  states <- states |> map(\(state){
+    candidate <- state
+    #print(candidate)
+    buttons |> map(\(button){
+      candidate[button] <- !candidate[button]
+      if(identical(candidate,target)){
+        match <<-T
+      }
+      candidate
+    }) 
+}) |> flatten()
+  if(match){
+    return(its)
+  } else{
+    #print(paste("states length", length(states)))
+    return(pressButtons(states, target, buttons, its + 1))
+  }
 
+}
 
 data |> map(\(x){
   its <- 1
   pattern <- x |> pluck(1)
   base <- rep(F,length(pattern))
-  while(!identical(pattern, base)){
-    base <- pressButtons(base, pattern, x |> pluck(3))
-    its <<- its + 1
-  }
-  its
-})
+  pressButtons(list(base), pattern, x |> pluck(3), 1)
+}) |> reduce(sum) |> print()
 
