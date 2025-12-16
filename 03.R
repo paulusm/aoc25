@@ -5,7 +5,7 @@ library(dplyr)
 options(scipen = 999)
 
 
-banks <- read_lines(file = "data/3-test.txt")
+banks <- read_lines(file = "data/3.txt")
 
 banks |>
     map(\(bank) {
@@ -38,8 +38,14 @@ getMax <- function(bank, result, n, target_n, indices) {
         str_split_1("") |>
         as.integer() |>
         imap(\(x, i) {
-            if (!(i %in% indices) & i < target_n - n) {
+            if (
+                (!(i %in% indices)) &
+                    (i < nchar(bank) - n + 2) &
+                    (i > max(indices))
+            ) {
                 if (x > top) {
+                    #print(i)
+                    #print(indices)
                     top <<- x
                     lastIndex <<- i
                 }
@@ -54,9 +60,8 @@ getMax <- function(bank, result, n, target_n, indices) {
     ))
 }
 
-# banks |>
-#     map(\(bank) {
-#         getMax(bank, "", 12)
-#     }) #|>
-# as.double() |>
-# reduce(sum)
+banks |>
+    map(\(bank) {
+        getMax(bank, 0, 12, 12, c())
+    }) |>
+    reduce(sum)
