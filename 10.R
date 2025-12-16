@@ -5,7 +5,7 @@ library(stringr)
 
 input <- read_lines(file = "data/10-test.txt")
 
-input |>
+data <- input |>
   map(\(x) {
     parse <- str_match(
       x,
@@ -22,3 +22,5 @@ input |>
         })
     )
   })
+
+data |> map(\(x) {})
