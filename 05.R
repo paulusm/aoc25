@@ -23,48 +23,43 @@ data |>
     }
   })
 
-# dtSamples$sample |>
-#   map(\(x) {
-#     ifelse(nrow(dtFresh |> filter(x >= from & x <= to)) > 0, 1, 0)
-#   }) |>
-#   reduce(sum) |>
-#   print()
+dtSamples$sample |>
+  map(\(x) {
+    ifelse(nrow(dtFresh |> filter(x >= from & x <= to)) > 0, 1, 0)
+  }) |>
+  reduce(sum) |>
+  print()
 
 # Part 2 not yet working
-rm(dtFreshClean)
-dtFreshClean <- data.table(from = numeric(), to = numeric())
-dtFreshNonOverlap <- dtFresh
+dtNoOverlaps <- data.table(f = numeric(), t = numeric())
+dtFresh |>
+  arrange(from) |>
+  pmap(\(from, to) {
+    overlaps <- dtNoOverlaps[
+      (from >= f & to >= t & from < t) |
+        (from <= f & to <= t & to < f),
+    ]
 
-dtFreshNonOverlap$from |>
-  map2(dtFreshNonOverlap$to, \(a, b) {
-    dtFreshNonOverlap$from |>
-      map2(dtFreshNonOverlap$to, \(x, y) {
-        if (a != x & b != y) {
-          # Overlapping head
-          if (a < x & b > x & b < y) {
-            dtFreshClean <<- dtFreshClean |> rbind(list(a, y))
-            dtFreshNonOverlap <<- dtFreshNonOverlap[
-              -((from == a & to == b) | (from == x & to == y)),
-            ]
-          }
-          # Overlapping tail
-          if (a > x & a < y & b > y) {
-            dtFreshClean <<- dtFreshClean |> rbind(list(x, b))
-            dtFreshNonOverlap <<- dtFreshNonOverlap[
-              -((from == a & to == b) | (from == x & to == y)),
-            ]
-          }
-          # Enclosed
-          if (a > x & b < y) {
-            dtFreshNonOverlap <<- dtFreshNonOverlap[
-              -(from == a & to == b),
-            ]
-          }
-        }
-      })
+    if (nrow(overlaps) == 0) {
+      dtNoOverlaps <<- dtNoOverlaps |> rbind(list(from, to))
+    } else {
+      overlaps <- overlaps |> rbind(list(from, to))
+      #print(paste("overlaps", nrow(overlaps)))
+      frommin <- from
+      tomax <- to
+      overlaps |>
+        pmap(\(f, t) {
+          frommin <<- min(f, frommin)
+          tomax <<- max(to, tomax)
+        })
+      dtNoOverlaps <<- dtNoOverlaps |> anti_join(overlaps, by = join_by(f, t))
+      dtNoOverlaps <<- dtNoOverlaps |> rbind(list(frommin, tomax))
+    }
   })
 
-
-dtOverall <- dtFreshClean |> bind_rows(dtFreshNonOverlap)
-dtOverall <- unique(dtOverall)
-dtOverall |> mutate(diff = (to - from) + 1) |> summarise(sum(diff)) |> print()
+dtNoOverlaps |>
+  pmap(\(f, t) {
+    t - f + 1
+  }) |>
+  reduce(sum) |>
+  print()
