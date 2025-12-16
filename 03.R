@@ -28,18 +28,35 @@ banks |>
     }) |>
     reduce(sum)
 
-
-removeMin <- function(b) {
-    minJolt <- b |> str_split_1("") |> as.integer() |> reduce(min)
-    b |> str_remove(as.character(minJolt))
+getMax <- function(bank, result, n, target_n, indices) {
+    if (n == 0) {
+        return(result)
+    }
+    top <- 0
+    lastIndex <- 0
+    bank |>
+        str_split_1("") |>
+        as.integer() |>
+        imap(\(x, i) {
+            if (!(i %in% indices) & i < target_n - n) {
+                if (x > top) {
+                    top <<- x
+                    lastIndex <<- i
+                }
+            }
+        })
+    return(getMax(
+        bank,
+        result + (top * 10^(n - 1)),
+        n - 1,
+        n,
+        c(indices, lastIndex)
+    ))
 }
 
-
-banks |>
-    map(\(bank) {
-        while (nchar(bank) > 12) {
-            bank <- removeMin(bank)
-        }
-        as.double(bank)
-    }) |>
-    reduce(sum)
+# banks |>
+#     map(\(bank) {
+#         getMax(bank, "", 12)
+#     }) #|>
+# as.double() |>
+# reduce(sum)
