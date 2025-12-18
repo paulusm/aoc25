@@ -3,7 +3,7 @@ library(stringr)
 library(dplyr)
 library(purrr)
 
-rollmap <- read_lines(file = "data/4-test.txt")
+rollmap <- read_lines(file = "data/4.txt")
 gridsize <- nchar(rollmap[1])
 rollnum <- rollmap |>
   map(\(x) {
@@ -12,6 +12,7 @@ rollnum <- rollmap |>
   flatten()
 
 rollgrid <- matrix(rollnum, nrow = gridsize, ncol = gridsize)
+batchToRemove <- tibble(x = c(), y = c())
 
 removeRolls <- function() {
   return(
@@ -40,7 +41,7 @@ removeRolls <- function() {
                 }) |>
                 reduce(sum)
               if (neighbours < 4) {
-                rollgrid[x, y] <<- F
+                batchToRemove <<- batchToRemove |> bind_rows(list(x = x, y = y))
               }
               neighbours
             } else {
@@ -60,7 +61,11 @@ tot <- 0
 foo <- removeRolls()
 while (foo > 0) {
   foo <- removeRolls()
-  print(foo)
+  # print(foo)
   tot <- tot + foo
+  batchToRemove |>
+    pmap(\(x, y) {
+      rollgrid[x, y] <<- F
+    })
 }
 print(paste("total", tot))
