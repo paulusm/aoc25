@@ -3,8 +3,8 @@ library(purrr)
 library(dplyr)
 library(igraph)
 
-data <- read_csv(file = "data/8-test.txt", col_names = F, show_col_types = F)
-circuit_limit <- 10
+data <- read_csv(file = "data/8.txt", col_names = F, show_col_types = F)
+circuit_limit <- 1000
 data$id <- as.integer(rownames(data))
 
 distances <- data |> cross_join(data)
@@ -39,7 +39,7 @@ circuits <- graph(directed = F, edges = c())
 
 newGraphItems <- distances |>
   arrange(distance) |>
-  filter(X1.x < X1.y) |>
+  filter(id.x < id.y) |>
   #slice((circuit_limit + 1):nrow(distances)) |>
   mutate(from = id.x, to = id.y) |>
   filter(distance > 0)
@@ -59,9 +59,9 @@ for (i in 1:nrow(newGraphItems)) {
   newFrom <- as.character(newGraphItems[i, "from"])
   newTo <- as.character(newGraphItems[i, "to"])
   if (
-    components(circuits)$no != 1 |
-      length(V(circuits)) == 0 |
-      length(V(circuits)) < 5
+    length(V(circuits)) < nrow(data) |
+      components(circuits)$no != 1 |
+      i < 10
   ) {
     if (getVertexId(newFrom) == 0) {
       circuits <- circuits + vertex(newFrom)
@@ -70,9 +70,19 @@ for (i in 1:nrow(newGraphItems)) {
       circuits <- circuits + vertex(newTo)
     }
     circuits <- circuits + edge(newFrom, newTo)
+    # print(paste(
+    #   i,
+    #   "connecting",
+    #   newGraphItems[i, "X1.x"],
+    #   "and",
+    #   newGraphItems[i, "X1.y"]
+    # ))
     #print(paste(i, "no of Components", components(circuits)$no))
   } else {
-    print(paste("Part 2:", newGraphItems[i, "X1.x"] * newGraphItems[i, "X1.y"]))
+    print(paste(
+      "Part 2:",
+      newGraphItems[i - 1, "X1.x"] * newGraphItems[i - 1, "X1.y"]
+    ))
     break
   }
 }
