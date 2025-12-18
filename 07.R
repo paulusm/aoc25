@@ -1,6 +1,7 @@
 library(readr)
 library(purrr)
 library(stringr)
+library(tidyr)
 
 data <- read_lines(file = "data/7-test.txt")
 splits <- 0
@@ -38,9 +39,35 @@ data <- data |>
 print(splits)
 
 ## Part Two
-forks <- data <- data |>
+
+forks <- data |>
   discard_at(1) |>
   imap(\(line, i) {
-    forks <- (line |> str_locate_all("\\^"))[[1]][, 1]
-    print(forks)
+    (line |> str_locate_all("\\^"))[[1]][, 1]
+  }) |>
+  keep(\(x) {
+    all(length(x) > 0)
   })
+
+
+findQuantumPaths <- function(junctions, level, pos) {
+  if (level == length(junctions)) {
+    return(0)
+  }
+  currentForks <- junctions[[level]]
+  return(
+    currentForks |>
+      map(\(x) {
+        nextpos <- as.numeric(x)
+        if (abs(pos - nextpos) == 1) {
+          findQuantumPaths(forks, level + 1, nextpos)
+        } else {
+          {
+            1
+          }
+        }
+      }) |>
+      reduce(sum)
+  )
+}
+print(findQuantumPaths(forks, 2, 8))
