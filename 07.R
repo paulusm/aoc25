@@ -3,10 +3,10 @@ library(purrr)
 library(stringr)
 library(tidyr)
 
-data <- read_lines(file = "data/7-test.txt")
+data <- read_lines(file = "data/7.txt")
 splits <- 0
-beampos <- list(str_locate(data[[1]], "S")[1, 1])
-
+startpos <- list(str_locate(data[[1]], "S")[1, 1])
+beampos <- startpos
 
 ## Part One
 
@@ -36,7 +36,7 @@ data <- data |>
     print(newline)
   })
 
-print(splits)
+print(paste("Part1: ", splits))
 
 ## Part Two
 
@@ -50,24 +50,33 @@ forks <- data |>
   })
 
 
-findQuantumPaths <- function(junctions, level, pos) {
+findQuantumPaths <- function(junctions, level, pos, pathsCount) {
   if (level == length(junctions)) {
-    return(0)
+    return(
+      pathsCount
+    )
   }
   currentForks <- junctions[[level]]
   return(
     currentForks |>
       map(\(x) {
         nextpos <- as.numeric(x)
-        if (abs(pos - nextpos) == 1) {
-          findQuantumPaths(forks, level + 1, nextpos)
+        diff <- nextpos - pos
+        if (abs(diff) == 1) {
+          pathsCount <<- pathsCount + 1
+          findQuantumPaths(forks, level + 1, nextpos, pathsCount)
         } else {
           {
-            1
+            0
           }
         }
       }) |>
       reduce(sum)
   )
 }
-print(findQuantumPaths(forks, 2, 8))
+print(paste(
+  "Part 2:",
+  findQuantumPaths(forks, 2, startpos[[1]], 0) +
+    length(forks[[length(forks)]]) -
+    length(forks[[length(forks) - 1]])
+))
